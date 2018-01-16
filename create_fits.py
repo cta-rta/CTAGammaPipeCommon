@@ -7,7 +7,8 @@
 
 import sys
 import mysql.connector as mysql
-from conf import get_conf
+from conf import get_pipedb_conf
+from conf import get_evtdb_conf
 #import pyfits
 import numpy as np
 from numpy import rec
@@ -24,18 +25,25 @@ def write_fits(tstart,tstop,observationid,filename,path_base_fits):
     tstop = float(tstop)
 
     #connect to database
-    conf_dictionary = get_conf()
+    conf_dictionary = get_pipedb_conf()
 
-    hostname = conf_dictionary['host']
-    username = conf_dictionary['username']
-    password = conf_dictionary['password']
-    port = conf_dictionary['port']
-    databas_evt = conf_dictionary['evt-database']
-    database_pipe = conf_dictionary['database']
+    pipedb_hostname = conf_dictionary['host']
+    pipedb_username = conf_dictionary['username']
+    pipedb_password = conf_dictionary['password']
+    pipedb_port = conf_dictionary['port']
+    pipedb_database = conf_dictionary['database']
 
+    #connect to database
+    conf_dictionary = get_evtdb_conf()
+
+    evtdb_hostname = conf_dictionary['host']
+    evtdb_username = conf_dictionary['username']
+    evtdb_password = conf_dictionary['password']
+    evtdb_port = conf_dictionary['port']
+    evtdb_database = conf_dictionary['database']
 
     # get events list
-    conn = mysql.connect(host=hostname, user=username, passwd=password, db=databas_evt)
+    conn = mysql.connect(host=evtdb_hostname, user=evtdb_username, passwd=evtdb_password, db=evtdb_database)
     cursor = conn.cursor(dictionary=True)
 
 
@@ -47,7 +55,7 @@ def write_fits(tstart,tstop,observationid,filename,path_base_fits):
     conn.close()
 
     #get observation info
-    conn = mysql.connect(host=hostname, user=username, passwd=password, db=database_pipe)
+    conn = mysql.connect(host=pipedb_hostname, user=pipedb_username, passwd=pipedb_password, db=pipedb_database)
     cursor = conn.cursor(dictionary=True)
 
     #get observation info
