@@ -9,7 +9,7 @@ import sys
 import mysql.connector as mysql
 from conf import get_pipedb_conf
 from conf import get_evtdb_conf
-from GammaPipeCommon import utility
+from GammaPipeCommon.utility import *
 import numpy as np
 from numpy import rec
 #from pyfits import Column
@@ -78,7 +78,7 @@ def write_fits(tstart,tstop,observationid,path_base_fits):
 
     for x in events:
         time_real_mjd = Utility.convert_tt_to_mjd(x['TIME_REAL_TT'])
-        x['TIME_REAL_TT'] = str(float(time_real_mjd)-float(tref_mjd))*86400
+        x['TIME_REAL_TT'] = str(float(time_real_mjd)-float(tref_mjd)*86400)
 
     # CREATE EVENTS data table HDU
 
