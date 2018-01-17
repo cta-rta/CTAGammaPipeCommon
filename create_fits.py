@@ -78,7 +78,11 @@ def write_fits(tstart,tstop,observationid,path_base_fits):
 
     for x in events:
         time_real_mjd = Utility.convert_tt_to_mjd(x['TIME_REAL_TT'])
-        x['TIME_REAL_TT'] = str(float(time_real_mjd)-float(tref_mjd)*86400)
+        print(time_real_mjd)
+        print(tref_mjd)
+        time_real_seconds = str((float(time_real_mjd)-float(tref_mjd))*86400)
+        print(time_real_seconds)
+        x['TIME_REAL_TT'] = time_real_seconds
 
     # CREATE EVENTS data table HDU
 
