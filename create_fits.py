@@ -9,7 +9,7 @@ import sys
 import mysql.connector as mysql
 from conf import get_pipedb_conf
 from conf import get_evtdb_conf
-#import pyfits
+from GammaPipeCommon import utility
 import numpy as np
 from numpy import rec
 #from pyfits import Column
@@ -19,7 +19,7 @@ from astropy.coordinates import SkyCoord
 from astropy.io import fits
 
 # create FITS with event in time window from observation
-def write_fits(tstart,tstop,observationid,filename,path_base_fits):
+def write_fits(tstart,tstop,observationid,path_base_fits):
 
     tstart = float(tstart)
     tstop = float(tstop)
@@ -47,7 +47,7 @@ def write_fits(tstart,tstop,observationid,filename,path_base_fits):
     cursor = conn.cursor(dictionary=True)
 
 
-    cursor.execute("SELECT * FROM evt3 WHERE TIME_REAL > "+str(tstart)+" AND TIME_REAL < "+str(tstop)+" AND OBS_ID = "+str(observationid))
+    cursor.execute("SELECT * FROM streaming_evt WHERE TIME_REAL_TT > "+str(tstart)+" AND TIME_REAL_TT < "+str(tstop)+" AND OBS_ID = "+str(observationid))
 
     events = cursor.fetchall()
 
@@ -72,10 +72,18 @@ def write_fits(tstart,tstop,observationid,filename,path_base_fits):
 
     events_hdu = hdulist[1]
 
+
+    #convert time from TT to MJD REF CTA
+    tref_mjd = observation_parameters['timerefstart']
+
+    for x in events:
+        time_real_mjd = Utility.convert_tt_to_mjd(x['TIME_REAL_TT'])
+        x['TIME_REAL_TT'] = str(float(time_real_mjd)-float(tref_mjd))*86400
+
     # CREATE EVENTS data table HDU
 
     c_e_1 = fits.Column(name = 'EVENT_ID', format = '1J', bscale = 1, bzero = 2147483648, array=np.array([x['EVT_ID'] for x in events]))
-    c_e_2 = fits.Column(name = 'TIME',format = '1D', unit = 's', array=np.array([x['TIME'] for x in events]))
+    c_e_2 = fits.Column(name = 'TIME',format = '1D', unit = 's', array=np.array([x['TIME_REAL_TT'] for x in events]))
     c_e_3 = fits.Column(name = 'RA',format = '1E', unit = 'deg', array=np.array([x['RA'] for x in events]))
     c_e_4 = fits.Column(name = 'DEC', format = '1E', unit = 'deg', array=np.array([x['DEC'] for x in events]))
     c_e_5 = fits.Column(name = 'ENERGY', format = '1E', unit = 'TeV', array=np.array([x['ENERGY'] for x in events]))
@@ -131,8 +139,11 @@ def write_fits(tstart,tstop,observationid,filename,path_base_fits):
     data_tbhdu.header['TIME_END'] = ""
     data_tbhdu.header['TSTART'] = str(tstart)
     data_tbhdu.header['TSTOP'] = str(tstop)
-    data_tbhdu.header['MJDREFI'] = "51544"
-    data_tbhdu.header['MJDREFF'] = "0.5"
+
+    refint,refdecimal = int(tref_mjd),tref_mjd-int(tref_mjd)
+
+    data_tbhdu.header['MJDREFI'] = str(refint)
+    data_tbhdu.header['MJDREFF'] = str(refdecimal)
 
     data_tbhdu.header['TELAPSE'] = str(tstop-tstart)
     data_tbhdu.header['ONTIME'] = str(tstop-tstart)
@@ -156,6 +167,7 @@ def write_fits(tstart,tstop,observationid,filename,path_base_fits):
 
     thdulist = fits.HDUList([primary_hdu,data_tbhdu,gti_tbhdu])
 
+    filename = "obs_"+str(observationid)+"_"+str(tstart)+"_"+str(tstop)+".fits"
     if os.path.exists(filename):
         os.unlink(filename)
     thdulist.writeto(filename)
@@ -173,8 +185,6 @@ if __name__ == '__main__':
     tstart = sys.argv[1]
     tstop = sys.argv[2]
     observationid = sys.argv[3]
-    filename = sys.argv[4]
-    path_base_fits = sys.argv[5]
+    path_base_fits = "templates/base_empty.fits"
 
-
-    write_fits(tstart,tstop,observationid,filename,path_base_fits)
+    write_fits(tstart,tstop,observationid,path_base_fits)
