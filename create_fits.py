@@ -19,10 +19,10 @@ from astropy.coordinates import SkyCoord
 from astropy.io import fits
 
 # create FITS with event in time window from observation
-def write_fits(tstart,tstop,observationid,path_base_fits):
+def write_fits(tstart_tt,tstop_tt,observationid,path_base_fits,tref_mjd,obs_ra,obs_dec,emin,emax,fov,instrumentname):
 
-    tstart = float(tstart)
-    tstop = float(tstop)
+    tstart = float(tstart_tt)
+    tstop = float(tstop_tt)
 
     #connect to database
     conf_dictionary = get_pipedb_conf()
@@ -54,17 +54,6 @@ def write_fits(tstart,tstop,observationid,path_base_fits):
     cursor.close()
     conn.close()
 
-    #get observation info
-    conn = mysql.connect(host=pipedb_hostname, user=pipedb_username, passwd=pipedb_password, db=pipedb_database)
-    cursor = conn.cursor(dictionary=True)
-
-    #get observation info
-    cursor.execute("SELECT * FROM observation_parameters WHERE observationid = "+str(observationid))
-
-    observation_parameters = cursor.fetchone()
-
-    cursor.close()
-    conn.close()
 
     hdulist = fits.open(path_base_fits)
 
@@ -72,16 +61,14 @@ def write_fits(tstart,tstop,observationid,path_base_fits):
 
     events_hdu = hdulist[1]
 
-
-    #convert time from TT to MJD REF CTA
-    tref_mjd = observation_parameters['timerefstart']
+    tref_mjd = float(tref_mjd)
 
     for x in events:
         time_real_mjd = Utility.convert_tt_to_mjd(x['TIME_REAL_TT'])
-        print(time_real_mjd)
-        print(tref_mjd)
+        #print(time_real_mjd)
+        #print(tref_mjd)
         time_real_seconds = str((float(time_real_mjd)-float(tref_mjd))*86400)
-        print(time_real_seconds)
+        #print(time_real_seconds)
         x['TIME_REAL_TT'] = time_real_seconds
 
     # CREATE EVENTS data table HDU
@@ -100,27 +87,15 @@ def write_fits(tstart,tstop,observationid,path_base_fits):
     data_tbhdu = fits.BinTableHDU.from_columns(coldefs)
     data_tbhdu.header = hdulist[1].header
 
-    #convert coordinate from galactic to celestial (icrs)
-    obs_gal_coord = SkyCoord(observation_parameters['lon'],observation_parameters['lat'], unit='deg', frame='galactic')
 
-    #print obs_gal_coord
-    obs_icrs_coord = obs_gal_coord.icrs
-
-    #print obs_icrs_coord
-
-    obs_ra = "{0:.4f}".format(obs_icrs_coord.ra.degree)
-    obs_dec = "{0:.4f}".format(obs_icrs_coord.dec.degree)
-
-    #print obs_ra
-    #print obs_dec
 
     #change header content
     data_tbhdu.header['NAXIS2'] = len(events)
-    data_tbhdu.header['DSVAL2'] = str(observation_parameters['emin'])+":"+str(observation_parameters['emax'])
-    data_tbhdu.header['DSVAL3'] = "CIRCLE("+obs_ra+","+obs_dec+","+str(observation_parameters['fov'])+")"
+    data_tbhdu.header['DSVAL2'] = emin+":"+emax
+    data_tbhdu.header['DSVAL3'] = "CIRCLE("+obs_ra+","+obs_dec+","+fov+")"
     data_tbhdu.header['MMN00001'] = "None"
     data_tbhdu.header['MMN00002'] = "None"
-    data_tbhdu.header['TELESCOP'] = str(observation_parameters['name'])
+    data_tbhdu.header['TELESCOP'] = str(instrumentname)
     data_tbhdu.header['OBS_ID'] = str(observationid)
 
     # # time_second/86400 + 51544.5 = time_mjd
@@ -144,7 +119,8 @@ def write_fits(tstart,tstop,observationid,path_base_fits):
     data_tbhdu.header['TSTART'] = str(tstart)
     data_tbhdu.header['TSTOP'] = str(tstop)
 
-    refint,refdecimal = int(tref_mjd),tref_mjd-int(tref_mjd)
+    int_tref = int(tref_mjd)
+    refint,refdecimal = int(tref_mjd),float(tref_mjd)-int(tref_mjd)
 
     data_tbhdu.header['MJDREFI'] = str(refint)
     data_tbhdu.header['MJDREFF'] = str(refdecimal)
@@ -186,9 +162,16 @@ def write_fits(tstart,tstop,observationid,path_base_fits):
 if __name__ == '__main__':
 
     # crete the XML for the specific observation
-    tstart = sys.argv[1]
-    tstop = sys.argv[2]
+    tstart_tt = sys.argv[1]
+    tstop_tt = sys.argv[2]
     observationid = sys.argv[3]
+    tref_mjd = sys.argv[4]
+    obs_ra = sys.argv[5]
+    obs_dec = sys.argv[6]
+    emin = sys.argv[7]
+    emax = sys.argv[8]
+    fov = sys.argv[9]
+    instrumentname = sys.argv[10]
     path_base_fits = "templates/base_empty.fits"
 
-    write_fits(tstart,tstop,observationid,path_base_fits)
+    write_fits(tstart_tt,tstop_tt,observationid,path_base_fits,tref_mjd,obs_ra,obs_dec,emin,emax,fov,instrumentname)
