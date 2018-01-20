@@ -158,6 +158,8 @@ def write_fits(tstart_tt,tstop_tt,observationid,path_base_fits,tref_mjd,obs_ra,o
 
     hdulist_new.close()
 
+    return filename
+
 
 if __name__ == '__main__':
 
@@ -174,4 +176,6 @@ if __name__ == '__main__':
     instrumentname = sys.argv[10]
     path_base_fits = "templates/base_empty.fits"
 
-    write_fits(tstart_tt,tstop_tt,observationid,path_base_fits,tref_mjd,obs_ra,obs_dec,emin,emax,fov,instrumentname)
+    filename = write_fits(tstart_tt,tstop_tt,observationid,path_base_fits,tref_mjd,obs_ra,obs_dec,emin,emax,fov,instrumentname)
+
+    print(filename)
