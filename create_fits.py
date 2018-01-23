@@ -33,7 +33,7 @@ from astropy.coordinates import SkyCoord
 from astropy.io import fits
 
 # create FITS with event in time window from observation
-def write_fits(tstart_tt,tstop_tt,observationid,path_base_fits,tref_mjd,obs_ra,obs_dec,emin,emax,fov,instrumentname):
+def write_fits(tstart_tt,tstop_tt,observationid,datarepositoryid,path_base_fits,tref_mjd,obs_ra,obs_dec,emin,emax,fov,instrumentname):
 
     tstart = float(tstart_tt)
     tstop = float(tstop_tt)
@@ -65,11 +65,12 @@ def write_fits(tstart_tt,tstop_tt,observationid,path_base_fits,tref_mjd,obs_ra,o
     conn = mysql.connect(host=evtdb_hostname, user=evtdb_username, passwd=evtdb_password, db=evtdb_database)
     cursor = conn.cursor(dictionary=True)
 
-    query = "SELECT * FROM streaming_evt WHERE timerealtt > "+str(tstart)+" AND timerealtt < "+str(tstop)+" AND observationid = "+str(observationid)
+    query = "SELECT * FROM streaming_evt WHERE timerealtt > "+str(tstart)+" AND timerealtt < "+str(tstop)+" AND observationid = "+str(observationid)+" AND datarepositoryid = "+str(datarepositoryid)
     print(query)
     cursor.execute(query)
 
     events = cursor.fetchall()
+    print(len(events))
 
     cursor.close()
     conn.close()
@@ -94,7 +95,7 @@ def write_fits(tstart_tt,tstop_tt,observationid,path_base_fits,tref_mjd,obs_ra,o
     # CREATE EVENTS data table HDU
 
     c_e_1 = fits.Column(name = 'EVENT_ID', format = '1J', bscale = 1, bzero = 2147483648, array=np.array([x['evtid'] for x in events]))
-    c_e_2 = fits.Column(name = 'TIME',format = '1D', unit = 's', array=np.array([x['timerealtt'] for x in events]))
+    c_e_2 = fits.Column(name = 'TIME',format = '1D', unit = 'day', array=np.array([x['timerealtt'] for x in events]))
     c_e_3 = fits.Column(name = 'RA',format = '1E', unit = 'deg', array=np.array([x['ra_deg'] for x in events]))
     c_e_4 = fits.Column(name = 'DEC', format = '1E', unit = 'deg', array=np.array([x['dec_deg'] for x in events]))
     c_e_5 = fits.Column(name = 'ENERGY', format = '1E', unit = 'TeV', array=np.array([x['energy'] for x in events]))
@@ -156,8 +157,14 @@ def write_fits(tstart_tt,tstop_tt,observationid,path_base_fits,tref_mjd,obs_ra,o
 
     # CREATE GTI data table HDU
 
-    gti_tstart = np.array([tstart])
-    gti_tstop = np.array([tstop])
+    time_start_mjd = Utility.convert_tt_to_mjd(tstart)
+    time_stop_mjd = Utility.convert_tt_to_mjd(tstop)
+
+    time_start_second = str((float(time_start_mjd)-float(tref_mjd))*86400)
+    time_stop_second = str((float(time_stop_mjd)-float(tref_mjd))*86400)
+
+    gti_tstart = np.array([time_start_second])
+    gti_tstop = np.array([time_stop_second])
     c1 = fits.Column(name='START', format='1D', array=gti_tstart)
     c2 = fits.Column(name='STOP', format='1D', array=gti_tstop)
     coldefs = fits.ColDefs([c1, c2])
