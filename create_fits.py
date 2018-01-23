@@ -1,8 +1,22 @@
-# Copyright (c) 2017, AGILE team
-# Authors: Nicolo' Parmiggiani <nicolo.parmiggiani@gmail.com>,
+# ==========================================================================
+# Import fits file in database
 #
-# Any information contained in this software is property of the AGILE TEAM
-# and is strictly private and confidential. All rights reserved.
+# Copyright (C) 2018 Nicolo' Parmiggiani, Andrea Bulgarelli
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# ==========================================================================
 
 
 import sys
@@ -23,6 +37,11 @@ def write_fits(tstart_tt,tstop_tt,observationid,path_base_fits,tref_mjd,obs_ra,o
 
     tstart = float(tstart_tt)
     tstop = float(tstop_tt)
+    emin = str(emin)
+    emax = str(emax)
+    obs_ra = str(obs_ra)
+    obs_dec = str(obs_dec)
+    fov = str(fov)
 
     #connect to database
     conf_dictionary = get_pipedb_conf()
@@ -46,8 +65,9 @@ def write_fits(tstart_tt,tstop_tt,observationid,path_base_fits,tref_mjd,obs_ra,o
     conn = mysql.connect(host=evtdb_hostname, user=evtdb_username, passwd=evtdb_password, db=evtdb_database)
     cursor = conn.cursor(dictionary=True)
 
-
-    cursor.execute("SELECT * FROM streaming_evt WHERE TIME_REAL_TT > "+str(tstart)+" AND TIME_REAL_TT < "+str(tstop)+" AND OBS_ID = "+str(observationid))
+    query = "SELECT * FROM streaming_evt WHERE timerealtt > "+str(tstart)+" AND timerealtt < "+str(tstop)+" AND observationid = "+str(observationid)
+    print(query)
+    cursor.execute(query)
 
     events = cursor.fetchall()
 
@@ -64,23 +84,23 @@ def write_fits(tstart_tt,tstop_tt,observationid,path_base_fits,tref_mjd,obs_ra,o
     tref_mjd = float(tref_mjd)
 
     for x in events:
-        time_real_mjd = Utility.convert_tt_to_mjd(x['TIME_REAL_TT'])
+        time_real_mjd = Utility.convert_tt_to_mjd(x['timerealtt'])
         #print(time_real_mjd)
         #print(tref_mjd)
         time_real_seconds = str((float(time_real_mjd)-float(tref_mjd))*86400)
         #print(time_real_seconds)
-        x['TIME_REAL_TT'] = time_real_seconds
+        x['timerealtt'] = time_real_seconds
 
     # CREATE EVENTS data table HDU
 
-    c_e_1 = fits.Column(name = 'EVENT_ID', format = '1J', bscale = 1, bzero = 2147483648, array=np.array([x['EVT_ID'] for x in events]))
-    c_e_2 = fits.Column(name = 'TIME',format = '1D', unit = 's', array=np.array([x['TIME_REAL_TT'] for x in events]))
-    c_e_3 = fits.Column(name = 'RA',format = '1E', unit = 'deg', array=np.array([x['RA'] for x in events]))
-    c_e_4 = fits.Column(name = 'DEC', format = '1E', unit = 'deg', array=np.array([x['DEC'] for x in events]))
-    c_e_5 = fits.Column(name = 'ENERGY', format = '1E', unit = 'TeV', array=np.array([x['ENERGY'] for x in events]))
-    c_e_6 = fits.Column(name = 'DETX', format = '1E', unit = 'deg', array=np.array([x['DETX'] for x in events]))
-    c_e_7 = fits.Column( name = 'DETY', format = '1E', unit = 'deg', array=np.array([x['DETY'] for x in events]))
-    c_e_8 = fits.Column(name = 'MC_ID', format = '1J', array=np.array([x['MC_ID'] for x in events]))
+    c_e_1 = fits.Column(name = 'EVENT_ID', format = '1J', bscale = 1, bzero = 2147483648, array=np.array([x['evtid'] for x in events]))
+    c_e_2 = fits.Column(name = 'TIME',format = '1D', unit = 's', array=np.array([x['timerealtt'] for x in events]))
+    c_e_3 = fits.Column(name = 'RA',format = '1E', unit = 'deg', array=np.array([x['ra_deg'] for x in events]))
+    c_e_4 = fits.Column(name = 'DEC', format = '1E', unit = 'deg', array=np.array([x['dec_deg'] for x in events]))
+    c_e_5 = fits.Column(name = 'ENERGY', format = '1E', unit = 'TeV', array=np.array([x['energy'] for x in events]))
+    c_e_6 = fits.Column(name = 'DETX', format = '1E', unit = 'deg', array=np.array([x['detx'] for x in events]))
+    c_e_7 = fits.Column( name = 'DETY', format = '1E', unit = 'deg', array=np.array([x['dety'] for x in events]))
+    c_e_8 = fits.Column(name = 'MC_ID', format = '1J', array=np.array([x['mcid'] for x in events]))
 
     coldefs = fits.ColDefs([c_e_1, c_e_2,c_e_3,c_e_4,c_e_5,c_e_6,c_e_7,c_e_8])
 
