@@ -1,6 +1,6 @@
--- MySQL dump 10.13  Distrib 5.1.73, for redhat-linux-gnu (x86_64)
+-- MySQL dump 10.13  Distrib 5.7.20, for macos10.12 (x86_64)
 --
--- Host: localhost    Database: evt
+-- Host: morgana.iasfbo.inaf.it    Database: evt
 -- ------------------------------------------------------
 -- Server version	5.1.73
 
@@ -30,18 +30,20 @@ CREATE TABLE `evt3` (
   `time` double NOT NULL COMMENT 's',
   `ra_deg` double NOT NULL COMMENT 'deg',
   `dec_deg` double NOT NULL COMMENT 'deg',
-  `energy` double NOT NULL COMMENT 'TeV',
+  `energy` double DEFAULT NULL COMMENT 'TeV',
   `detx` double NOT NULL COMMENT 'deg',
   `dety` double NOT NULL COMMENT 'deg',
   `mcid` int(11) NOT NULL,
   `status` int(11) NOT NULL,
   `timerealtt` double NOT NULL,
+  `insert_time` int(11) unsigned DEFAULT NULL,
   PRIMARY KEY (`evtid`),
   UNIQUE KEY `eventidfits` (`eventidfits`,`datarepositoryid`,`observationid`),
   KEY `observationid` (`observationid`),
   KEY `datarepositoryid` (`datarepositoryid`),
-  KEY `timerealtt` (`timerealtt`)
-) ENGINE=InnoDB AUTO_INCREMENT=7691367 DEFAULT CHARSET=latin1 COMMENT='ctools_sim_100s_grb130427A';
+  KEY `timerealtt` (`timerealtt`),
+  KEY `time` (`time`)
+) ENGINE=InnoDB AUTO_INCREMENT=40228725 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -59,7 +61,7 @@ CREATE TABLE `log_streaming` (
   `twindow_stop` double DEFAULT NULL,
   `comment` text,
   PRIMARY KEY (`id_log_streaming`)
-) ENGINE=InnoDB AUTO_INCREMENT=328992 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=871005 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -73,17 +75,32 @@ CREATE TABLE `stream_data` (
   `streamdataid` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `observationid` int(11) unsigned NOT NULL,
   `datarepositoryid` int(11) unsigned NOT NULL,
-  `tstart` double DEFAULT NULL,
-  `tstop` double DEFAULT NULL,
-  `streamstatus` int(11) DEFAULT '0',
-  `twindowstart` double DEFAULT NULL,
-  `twindowstop` double DEFAULT NULL,
-  `pipedbname` varchar(255) DEFAULT NULL,
-  `timestep` int(11) DEFAULT NULL,
-  `timestepcount` int(11) DEFAULT NULL,
+  `tstart` double NOT NULL,
+  `tstop` double NOT NULL,
+  `streamstatus` int(11) NOT NULL DEFAULT '0',
+  `twindowstart` double NOT NULL,
+  `twindowstop` double NOT NULL,
+  `pipedbname` varchar(255) NOT NULL DEFAULT '',
+  `timestep` int(11) NOT NULL,
+  `timestepcount` int(11) NOT NULL,
+  `speedfactor` int(11) NOT NULL,
   PRIMARY KEY (`streamdataid`),
   UNIQUE KEY `observationid` (`observationid`,`datarepositoryid`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `stream_event`
+--
+
+DROP TABLE IF EXISTS `stream_event`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `stream_event` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `status` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -94,28 +111,26 @@ DROP TABLE IF EXISTS `streaming_evt`;
 /*!50001 DROP VIEW IF EXISTS `streaming_evt`*/;
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8;
-/*!50001 CREATE TABLE `streaming_evt` (
- `evtid` tinyint NOT NULL,
-  `eventidfits` tinyint NOT NULL,
-  `observationid` tinyint NOT NULL,
-  `datarepositoryid` tinyint NOT NULL,
-  `time` tinyint NOT NULL,
-  `ra_deg` tinyint NOT NULL,
-  `dec_deg` tinyint NOT NULL,
-  `energy` tinyint NOT NULL,
-  `detx` tinyint NOT NULL,
-  `dety` tinyint NOT NULL,
-  `mcid` tinyint NOT NULL,
-  `status` tinyint NOT NULL,
-  `timerealtt` tinyint NOT NULL
-) ENGINE=MyISAM */;
+/*!50001 CREATE VIEW `streaming_evt` AS SELECT 
+ 1 AS `evtid`,
+ 1 AS `eventidfits`,
+ 1 AS `observationid`,
+ 1 AS `datarepositoryid`,
+ 1 AS `time`,
+ 1 AS `ra_deg`,
+ 1 AS `dec_deg`,
+ 1 AS `energy`,
+ 1 AS `detx`,
+ 1 AS `dety`,
+ 1 AS `mcid`,
+ 1 AS `status`,
+ 1 AS `timerealtt`*/;
 SET character_set_client = @saved_cs_client;
 
 --
 -- Final view structure for view `streaming_evt`
 --
 
-/*!50001 DROP TABLE IF EXISTS `streaming_evt`*/;
 /*!50001 DROP VIEW IF EXISTS `streaming_evt`*/;
 /*!50001 SET @saved_cs_client          = @@character_set_client */;
 /*!50001 SET @saved_cs_results         = @@character_set_results */;
@@ -124,7 +139,6 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET character_set_results     = latin1 */;
 /*!50001 SET collation_connection      = latin1_swedish_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 DEFINER=`root`@`192.168.176.199` SQL SECURITY DEFINER */
 /*!50001 VIEW `streaming_evt` AS select `evt3`.`evtid` AS `evtid`,`evt3`.`eventidfits` AS `eventidfits`,`evt3`.`observationid` AS `observationid`,`evt3`.`datarepositoryid` AS `datarepositoryid`,`evt3`.`time` AS `time`,`evt3`.`ra_deg` AS `ra_deg`,`evt3`.`dec_deg` AS `dec_deg`,`evt3`.`energy` AS `energy`,`evt3`.`detx` AS `detx`,`evt3`.`dety` AS `dety`,`evt3`.`mcid` AS `mcid`,`evt3`.`status` AS `status`,`evt3`.`timerealtt` AS `timerealtt` from `evt3` where (`evt3`.`status` = 1) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -139,4 +153,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-03-02 11:33:59
+-- Dump completed on 2018-08-08 12:15:37
