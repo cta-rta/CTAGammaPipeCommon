@@ -22,7 +22,7 @@ from conf import get_evtdb_conf
 from astropy.io import fits
 import mysql.connector as mysql
 import sys
-from datetime import datetime
+#from datetime import datetime
 
 author = "Giovanni De Cesare"
 date = "2018-01-22"
@@ -43,7 +43,7 @@ def import_observation_fits(fits_file,observationid,datarepositoryid):
 
     Usage: import_observation_fits(fits_file,observationid,datarepositoryid)
     """
-    event_batch_number = 1000
+    event_batch_number = 5000
 
     #print("open fits")
     #print(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3])
@@ -68,18 +68,26 @@ def import_observation_fits(fits_file,observationid,datarepositoryid):
     timestart = 0
 
     print("start for")
-    print(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3])
+    #print(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3])
+
+    insert_query = ""
 
     #for each event create execute statement
     for event in tbdata:
-        count = count + 1
 
+
+        if(count == 0):
+            #conn_evt_db.commit()
+            insert_query = "INSERT INTO evt3 (eventidfits,observationid,datarepositoryid,time,ra_deg,dec_deg,energy,detx,dety,mcid,status) VALUES "
         if(count == event_batch_number):
-     #       conn_evt_db.commit()
             count = 0
-            print(time)
-            #print("commit  "+str(event_batch_number))
-            print(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3])
+            #print(insert_query)
+            cursor_evt_db.execute(insert_query)
+            conn_evt_db.commit()
+            insert_query = "INSERT INTO evt3 (eventidfits,observationid,datarepositoryid,time,ra_deg,dec_deg,energy,detx,dety,mcid,status) VALUES "
+        elif(count != 0):
+            insert_query += ","
+
         if(timestart == 0):
             timestart = float(event[1])
 
@@ -92,15 +100,14 @@ def import_observation_fits(fits_file,observationid,datarepositoryid):
         dety = str(event[6])
         mc_id = str(event[7])
 
-        insert_query = "INSERT INTO evt3 (eventidfits,observationid,datarepositoryid,time,ra_deg,dec_deg,energy,detx,dety,mcid,status) VALUES ("+eventidfits+","+observationid+","+datarepositoryid+","+time+","+ra+","+dec+","+energy+","+detx+","+dety+","+mc_id+",0)"
-        #print(insert_query)
-        #cursor_evt_db.execute(insert_query)
+        insert_query += " ("+eventidfits+","+observationid+","+datarepositoryid+","+time+","+ra+","+dec+","+energy+","+detx+","+dety+","+mc_id+",0)"
+        count = count + 1
 
     #commit last event
-    #conn_evt_db.commit()
+    cursor_evt_db.execute(insert_query)
+    conn_evt_db.commit()
 
     print("finish for")
-    print(datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3])
 
     #close connections
     cursor_evt_db.close()
