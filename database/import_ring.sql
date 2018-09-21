@@ -1,3 +1,6 @@
+INSERT INTO skyreftype (skyreftypeid,name,unit) VALUES (1,'galactic','deg');
+INSERT INTO skyreftype (skyreftypeid,name,unit) VALUES (2,'fk5','deg');
+
 INSERT INTO `skyringgroup` (`skyringgroupid`, `shortname`, `description`, `skyreftypeid`)
 VALUES
 	(1,'48',NULL,1),

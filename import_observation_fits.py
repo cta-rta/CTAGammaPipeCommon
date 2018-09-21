@@ -96,12 +96,17 @@ def import_observation_fits(fits_file,observationid,datarepositoryid):
         ra = str(event[2])
         dec = str(event[3])
         energy = str(event[4])
+        if(energy == "nan"):
+            energy = "NULL"
+        #    print("energy null")
         detx = str(event[5])
         dety = str(event[6])
         mc_id = str(event[7])
 
         insert_query += " ("+eventidfits+","+observationid+","+datarepositoryid+","+time+","+ra+","+dec+","+energy+","+detx+","+dety+","+mc_id+",0)"
         count = count + 1
+
+
 
     #commit last event
     cursor_evt_db.execute(insert_query)

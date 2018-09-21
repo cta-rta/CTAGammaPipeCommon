@@ -80,8 +80,8 @@ VALUES
 
 INSERT INTO `analysistrigger` (`analysistriggerid`, `name`, `shortname`, `category`, `triggersourcedatarepositoryid`, `triggersourcedatarepositoryidinstrumentid`, `triggersourcesciencealertinstrumentid`, `basedirresults`, `basedirrun`, `status`)
 VALUES
-	(1,'CTA_SOUTH_EVT3DB','',0,1,10,NULL,'/ANALYSIS3/','/ANALYSIS/RUN/',1),
-	(2,'','GBM-notice',0,NULL,NULL,1,'/ANALYSIS3/','/ANALYSIS/RUN/',1);
+	(1,'CTA_SOUTH_EVT3DB','',0,1,10,NULL,'/ANALYSIS3/','/ANALYSIS3/RUN/',1),
+	(2,'','GBM-notice',0,NULL,NULL,1,'/ANALYSIS3/','/ANALYSIS3/RUN/',1);
 
 INSERT INTO `dataprocessingtool` (`dataprocessingtoolid`, `name`, `module`, `sciencetool`, `skyreftypeid`, `timereftypeid`)
 VALUES
