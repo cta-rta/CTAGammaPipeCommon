@@ -60,8 +60,8 @@ def import_observation_fits(fits_file,observationid,datarepositoryid):
     evtdb_username = conf_dictionary['username']
     evtdb_password = conf_dictionary['password']
     evtdb_database = conf_dictionary['database']
-
-    conn_evt_db = mysql.connect(host=evtdb_hostname, user=evtdb_username, passwd=evtdb_password, db=evtdb_database)
+    evtdb_port = conf_dictionary['port']
+    conn_evt_db = mysql.connect(host=evtdb_hostname, user=evtdb_username, passwd=evtdb_password, db=evtdb_database,port=evtdb_port)
     cursor_evt_db = conn_evt_db.cursor(dictionary=True)
 
     count = 0
@@ -82,14 +82,15 @@ def import_observation_fits(fits_file,observationid,datarepositoryid):
         if(count == event_batch_number):
             count = 0
             #print(insert_query)
-            cursor_evt_db.execute(insert_query)
-            conn_evt_db.commit()
+            #cursor_evt_db.execute(insert_query)
+            #conn_evt_db.commit()
             insert_query = "INSERT INTO evt3 (eventidfits,observationid,datarepositoryid,time,ra_deg,dec_deg,energy,detx,dety,mcid,status) VALUES "
         elif(count != 0):
             insert_query += ","
 
         if(timestart == 0):
             timestart = float(event[1])
+            print(timestart)
 
         eventidfits = str(event[0])
         time = str(float(event[1])-timestart)
@@ -109,8 +110,8 @@ def import_observation_fits(fits_file,observationid,datarepositoryid):
 
 
     #commit last event
-    cursor_evt_db.execute(insert_query)
-    conn_evt_db.commit()
+    #cursor_evt_db.execute(insert_query)
+    #conn_evt_db.commit()
 
     print("finish for")
 
