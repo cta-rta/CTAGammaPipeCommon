@@ -62,7 +62,7 @@ def write_fits(tstart_tt,tstop_tt,observationid,datarepositoryid,path_base_fits,
     evtdb_database = conf_dictionary['database']
 
     # get events list
-    conn = mysql.connect(host=evtdb_hostname, user=evtdb_username, passwd=evtdb_password, db=evtdb_database)
+    conn = mysql.connect(host=evtdb_hostname, user=evtdb_username, passwd=evtdb_password, db=evtdb_database,port=evtdb_port)
     cursor = conn.cursor(dictionary=True)
 
     query = "SELECT * FROM streaming_evt WHERE timerealtt > "+str(tstart)+" AND timerealtt < "+str(tstop)+" AND observationid = "+str(observationid)+" AND datarepositoryid = "+str(datarepositoryid)
