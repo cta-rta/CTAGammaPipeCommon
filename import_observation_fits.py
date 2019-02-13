@@ -82,8 +82,8 @@ def import_observation_fits(fits_file,observationid,datarepositoryid):
         if(count == event_batch_number):
             count = 0
             #print(insert_query)
-            #cursor_evt_db.execute(insert_query)
-            #conn_evt_db.commit()
+            cursor_evt_db.execute(insert_query)
+            conn_evt_db.commit()
             insert_query = "INSERT INTO evt3 (eventidfits,observationid,datarepositoryid,time,ra_deg,dec_deg,energy,detx,dety,mcid,status) VALUES "
         elif(count != 0):
             insert_query += ","
@@ -110,8 +110,8 @@ def import_observation_fits(fits_file,observationid,datarepositoryid):
 
 
     #commit last event
-    #cursor_evt_db.execute(insert_query)
-    #conn_evt_db.commit()
+    cursor_evt_db.execute(insert_query)
+    conn_evt_db.commit()
 
     print("finish for")
 
